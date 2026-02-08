@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СНО ИМИТ ВолГУ — Интерактивная демонстрация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a1a;--bg2:#0e0e24;--bg3:#12122e;
+  --cyan:#00f0ff;--magenta:#ff00aa;--green:#00ff88;--yellow:#ffe066;
+  --text:#e0e6ff;--text-dim:#7a80a0;--text-bright:#ffffff;
+  --glow-cyan:0 0 20px rgba(0,240,255,.3),0 0 60px rgba(0,240,255,.1);
+  --glow-magenta:0 0 20px rgba(255,0,170,.3),0 0 60px rgba(255,0,170,.1);
+  --glow-green:0 0 20px rgba(0,255,136,.3),0 0 60px rgba(0,255,136,.1);
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;line-height:1.6;
+}
+code,pre,.mono{font-family:'JetBrains Mono',monospace}
+
+/* ═══ NOISE OVERLAY ═══ */
+body::before{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ═══ GRID BG ═══ */
+body::after{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,240,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,.03) 1px, transparent 1px);
+  background-size:60px 60px;
+}
+
+/* ═══ NAV ═══ */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,10,26,.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(0,240,255,.1);
+  padding:0 2rem;
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:2rem;height:64px;
+}
+.nav-logo{
+  font-weight:800;font-size:1.1rem;letter-spacing:.05em;
+  background:linear-gradient(135deg,var(--cyan),var(--magenta));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;
+}
+.nav-tabs{display:flex;gap:.25rem;margin-left:auto}
+.nav-tab{
+  padding:.5rem 1.25rem;border-radius:8px;cursor:pointer;
+  font-weight:500;font-size:.9rem;color:var(--text-dim);
+  border:1px solid transparent;transition:all .25s ease;
+  background:transparent;font-family:inherit;
+}
+.nav-tab:hover{color:var(--text);background:rgba(0,240,255,.05)}
+.nav-tab.active{
+  color:var(--cyan);background:rgba(0,240,255,.08);
+  border-color:rgba(0,240,255,.2);
+  text-shadow:0 0 20px rgba(0,240,255,.5);
+}
+
+/* ═══ SECTIONS ═══ */
+.section{display:none;animation:fadeUp .5s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:1200px;margin:0 auto;padding:2rem}
+
+/* ═══ ABOUT SECTION ═══ */
+.hero{text-align:center;padding:4rem 0 3rem}
+.hero-badge{
+  display:inline-block;padding:.35rem 1rem;border-radius:20px;
+  font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid rgba(0,240,255,.3);color:var(--cyan);
+  background:rgba(0,240,255,.05);margin-bottom:1.5rem;
+}
+.hero h1{
+  font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--text-bright) 40%,var(--magenta) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 40px rgba(0,240,255,.2));
+  margin-bottom:1rem;
+}
+.hero-sub{
+  font-size:1.15rem;color:var(--text-dim);max-width:680px;margin:0 auto;
+  line-height:1.7;
+}
+.hero-sub strong{color:var(--text)}
+
+/* Stats strip */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;
+  margin:3rem 0;
+}
+.stat-card{
+  background:rgba(0,240,255,.03);border:1px solid rgba(0,240,255,.08);
+  border-radius:var(--radius);padding:1.5rem 1rem;text-align:center;
+  transition:all .3s ease;
+}
+.stat-card:hover{
+  border-color:rgba(0,240,255,.25);background:rgba(0,240,255,.06);
+  transform:translateY(-2px);box-shadow:var(--glow-cyan);
+}
+.stat-num{
+  font-size:2rem;font-weight:800;
+  background:linear-gradient(135deg,var(--cyan),var(--green));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stat-label{font-size:.8rem;color:var(--text-dim);margin-top:.25rem}
+
+/* Info cards */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.5rem;margin:2rem 0}
+.info-card{
+  background:linear-gradient(135deg,rgba(0,240,255,.04),rgba(255,0,170,.02));
+  border:1px solid rgba(0,240,255,.08);border-radius:var(--radius);
+  padding:1.75rem;transition:all .3s ease;position:relative;overflow:hidden;
+}
+.info-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--magenta));
+  opacity:0;transition:opacity .3s;
+}
+.info-card:hover{
+  border-color:rgba(0,240,255,.2);transform:translateY(-3px);
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.info-card:hover::before{opacity:1}
+.info-card h3{font-size:1.1rem;font-weight:700;color:var(--text-bright);margin-bottom:.75rem;display:flex;align-items:center;gap:.6rem}
+.info-card .icon{font-size:1.3rem}
+.info-card p,.info-card ul{color:var(--text-dim);font-size:.92rem;line-height:1.65}
+.info-card ul{padding-left:1.2rem}
+.info-card li{margin-bottom:.3rem}
+.info-card li::marker{color:var(--cyan)}
+
+/* Activities */
+.activities{margin:3rem 0}
+.activities h2{
+  font-size:1.8rem;font-weight:800;margin-bottom:1.5rem;
+  background:linear-gradient(90deg,var(--text-bright),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.activity-tags{display:flex;flex-wrap:wrap;gap:.6rem}
+.activity-tag{
+  padding:.5rem 1.1rem;border-radius:20px;font-size:.85rem;font-weight:500;
+  border:1px solid;transition:all .3s ease;cursor:default;
+}
+.activity-tag:nth-child(6n+1){color:var(--cyan);border-color:rgba(0,240,255,.25);background:rgba(0,240,255,.06)}
+.activity-tag:nth-child(6n+2){color:var(--magenta);border-color:rgba(255,0,170,.25);background:rgba(255,0,170,.06)}
+.activity-tag:nth-child(6n+3){color:var(--green);border-color:rgba(0,255,136,.25);background:rgba(0,255,136,.06)}
+.activity-tag:nth-child(6n+4){color:var(--yellow);border-color:rgba(255,224,102,.25);background:rgba(255,224,102,.06)}
+.activity-tag:nth-child(6n+5){color:#a78bfa;border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.06)}
+.activity-tag:nth-child(6n+6){color:#fb923c;border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.06)}
+.activity-tag:hover{transform:scale(1.05)}
+
+.contact-bar{
+  margin-top:3rem;padding:1.5rem 2rem;border-radius:var(--radius);
+  background:rgba(255,0,170,.04);border:1px solid rgba(255,0,170,.12);
+  display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;
+}
+.contact-bar a{
+  color:var(--cyan);text-decoration:none;font-weight:500;
+  transition:color .2s;
+}
+.contact-bar a:hover{color:var(--text-bright);text-decoration:underline}
+
+/* ═══ SORTING SECTION ═══ */
+.sort-controls{
+  display:flex;flex-wrap:wrap;align-items:center;gap:1rem;
+  margin-bottom:1.5rem;
+}
+.algo-btns{display:flex;flex-wrap:wrap;gap:.4rem}
+.algo-btn{
+  padding:.45rem 1rem;border-radius:8px;border:1px solid rgba(0,240,255,.15);
+  background:rgba(0,240,255,.04);color:var(--text-dim);cursor:pointer;
+  font-family:inherit;font-size:.82rem;font-weight:500;transition:all .2s;
+}
+.algo-btn:hover{color:var(--text);border-color:rgba(0,240,255,.3)}
+.algo-btn.active{
+  color:var(--cyan);border-color:var(--cyan);
+  background:rgba(0,240,255,.1);text-shadow:0 0 10px rgba(0,240,255,.5);
+}
+.slider-group{display:flex;align-items:center;gap:.5rem}
+.slider-group label{font-size:.8rem;color:var(--text-dim);white-space:nowrap}
+.slider-group input[type=range]{
+  -webkit-appearance:none;width:120px;height:4px;border-radius:2px;
+  background:rgba(0,240,255,.15);outline:none;
+}
+.slider-group input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--cyan);cursor:pointer;box-shadow:0 0 10px rgba(0,240,255,.4);
+}
+.action-btn{
+  padding:.5rem 1.4rem;border-radius:8px;border:none;cursor:pointer;
+  font-family:inherit;font-size:.85rem;font-weight:600;transition:all .25s;
+}
+.btn-shuffle{
+  background:rgba(255,0,170,.12);color:var(--magenta);
+  border:1px solid rgba(255,0,170,.25);
+}
+.btn-shuffle:hover{background:rgba(255,0,170,.2)}
+.btn-sort{
+  background:linear-gradient(135deg,rgba(0,240,255,.2),rgba(0,255,136,.15));
+  color:var(--cyan);border:1px solid rgba(0,240,255,.3);
+}
+.btn-sort:hover{background:linear-gradient(135deg,rgba(0,240,255,.3),rgba(0,255,136,.25))}
+.btn-sort:disabled,.btn-shuffle:disabled{opacity:.4;cursor:not-allowed}
+
+.sort-stats{
+  display:flex;gap:2rem;margin-bottom:1rem;font-size:.85rem;color:var(--text-dim);
+}
+.sort-stats span{font-family:'JetBrains Mono',monospace}
+.sort-stats .num{color:var(--cyan);font-weight:600}
+
+.bars-container{
+  display:flex;align-items:flex-end;gap:1px;height:420px;
+  background:rgba(0,240,255,.02);border:1px solid rgba(0,240,255,.06);
+  border-radius:var(--radius);padding:1rem;position:relative;overflow:hidden;
+}
+.bar{
+  flex:1;border-radius:3px 3px 0 0;transition:height .05s ease;
+  position:relative;min-width:2px;
+}
+.bar.comparing{box-shadow:0 0 15px rgba(0,240,255,.6),0 -100px 40px rgba(0,240,255,.1)}
+.bar.swapping{box-shadow:0 0 20px rgba(255,0,170,.7),0 -100px 40px rgba(255,0,170,.15)}
+.bar.sorted{box-shadow:0 0 10px rgba(0,255,136,.3)}
+.bar.pivot{box-shadow:0 0 15px rgba(255,224,102,.6)}
+
+.algo-desc{
+  margin-top:1.5rem;padding:1.25rem 1.5rem;border-radius:var(--radius);
+  background:rgba(0,240,255,.03);border:1px solid rgba(0,240,255,.06);
+  font-size:.9rem;color:var(--text-dim);line-height:1.7;
+}
+.algo-desc strong{color:var(--text)}
+.algo-desc .complexity{
+  display:inline-block;margin-top:.5rem;padding:.2rem .6rem;border-radius:6px;
+  background:rgba(0,240,255,.08);color:var(--cyan);
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;
+}
+
+/* ═══ HEXAPAWN SECTION ═══ */
+.hex-layout{display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start}
+@media(max-width:800px){.hex-layout{grid-template-columns:1fr}}
+
+.hex-board-wrap{display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+.hex-board{
+  display:grid;grid-template-columns:repeat(3,100px);grid-template-rows:repeat(3,100px);
+  gap:4px;padding:12px;border-radius:var(--radius);
+  background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.1);
+  box-shadow:0 0 60px rgba(0,240,255,.05);
+}
+.hex-cell{
+  width:100px;height:100px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s ease;position:relative;font-size:2.8rem;
+}
+.hex-cell.light{background:rgba(0,240,255,.06)}
+.hex-cell.dark{background:rgba(255,0,170,.04)}
+.hex-cell:hover{background:rgba(0,240,255,.12)}
+.hex-cell.selected{
+  box-shadow:inset 0 0 0 2px var(--cyan),0 0 20px rgba(0,240,255,.3);
+}
+.hex-cell.valid-move{
+  box-shadow:inset 0 0 0 2px var(--green);cursor:pointer;
+}
+.hex-cell.valid-move::after{
+  content:'';position:absolute;width:24px;height:24px;border-radius:50%;
+  background:rgba(0,255,136,.25);border:2px solid rgba(0,255,136,.5);
+  animation:pulse-move 1.2s ease infinite;
+}
+@keyframes pulse-move{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.5}}
+
+.piece{
+  width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;font-weight:700;transition:all .2s ease;
+  position:relative;
+}
+.piece-white{
+  background:radial-gradient(circle at 35% 35%,#ffffff,#c0c8e0);
+  color:#1a1a2e;box-shadow:0 4px 15px rgba(255,255,255,.2),0 0 30px rgba(0,240,255,.15);
+}
+.piece-black{
+  background:radial-gradient(circle at 35% 35%,#4a3060,#1a0a2e);
+  color:var(--magenta);box-shadow:0 4px 15px rgba(0,0,0,.4),0 0 30px rgba(255,0,170,.15);
+  border:2px solid rgba(255,0,170,.3);
+}
+
+.hex-sidebar{display:flex;flex-direction:column;gap:1rem}
+.hex-panel{
+  padding:1.25rem;border-radius:var(--radius);
+  background:rgba(0,240,255,.03);border:1px solid rgba(0,240,255,.08);
+}
+.hex-panel h3{font-size:1rem;font-weight:700;color:var(--text-bright);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.hex-stat-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(0,240,255,.05)}
+.hex-stat-row:last-child{border:none}
+.hex-stat-label{font-size:.85rem;color:var(--text-dim)}
+.hex-stat-val{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--cyan)}
+
+.hex-btns{display:flex;gap:.5rem}
+.hex-btn{
+  flex:1;padding:.6rem;border-radius:8px;border:1px solid rgba(0,240,255,.2);
+  background:rgba(0,240,255,.06);color:var(--text);cursor:pointer;
+  font-family:inherit;font-size:.82rem;font-weight:500;transition:all .2s;
+}
+.hex-btn:hover{background:rgba(0,240,255,.12);border-color:rgba(0,240,255,.4)}
+.hex-btn.danger{border-color:rgba(255,0,170,.2);background:rgba(255,0,170,.06);color:var(--magenta)}
+.hex-btn.danger:hover{background:rgba(255,0,170,.12)}
+
+.hex-rules{font-size:.82rem;color:var(--text-dim);line-height:1.6}
+.hex-rules li{margin-bottom:.3rem}
+.hex-rules li::marker{color:var(--magenta)}
+
+.game-msg{
+  font-size:1.1rem;font-weight:600;text-align:center;min-height:1.5rem;
+  transition:all .3s;
+}
+.game-msg.win{color:var(--green);text-shadow:0 0 20px rgba(0,255,136,.4)}
+.game-msg.lose{color:var(--magenta);text-shadow:0 0 20px rgba(255,0,170,.4)}
+.game-msg.info{color:var(--cyan)}
+
+.brain-meter{
+  height:6px;border-radius:3px;background:rgba(0,240,255,.1);overflow:hidden;margin-top:.5rem;
+}
+.brain-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--magenta));transition:width .5s ease}
+
+.hex-intro{margin-bottom:1.5rem}
+.hex-intro h2{
+  font-size:1.8rem;font-weight:800;margin-bottom:.5rem;
+  background:linear-gradient(90deg,var(--magenta),var(--text-bright));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hex-intro p{color:var(--text-dim);font-size:.95rem;line-height:1.6}
+
+.sort-header h2{
+  font-size:1.8rem;font-weight:800;margin-bottom:.5rem;
+  background:linear-gradient(90deg,var(--cyan),var(--green));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.sort-header p{color:var(--text-dim);font-size:.95rem;margin-bottom:1.5rem}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">СНО ИМИТ</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="about">О нас</button>
+      <button class="nav-tab" data-tab="sorting">Алгоритмы</button>
+      <button class="nav-tab" data-tab="hexapawn">Hexapawn</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════ ABOUT ═══════════════════ -->
+<div id="about" class="section active">
+<div class="container">
+  <div class="hero">
+    <div class="hero-badge">Неделя науки ВолГУ 2026</div>
+    <h1>СНО ИМИТ ВолГУ</h1>
+    <p class="hero-sub">
+      <strong>Студенческое Научное Общество</strong> Института Математики и Информационных Технологий — это сообщество студентов, объединённых интересом к науке, программированию и технологиям. Мы участвуем в <strong>конференциях</strong>, <strong>хакатонах</strong>, <strong>олимпиадах ICPC</strong>, <strong>CTF-соревнованиях</strong> и <strong>грантовых программах</strong>.
+    </p>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-card"><div class="stat-num">600+</div><div class="stat-label">бюджетных мест</div></div>
+    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">направлений бакалавриата</div></div>
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">кафедры</div></div>
+    <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">программ магистратуры</div></div>
+    <div class="stat-card"><div class="stat-num">ICPC</div><div class="stat-label">участники Чемпионата мира</div></div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h3><span class="icon">🎓</span> Об институте</h3>
+      <p>ИМИТ — единственный в регионе институт, выпускающий математиков с классическим университетским образованием. Директор — А. Г. Лосев, д.ф.-м.н., профессор. Участник Microsoft Developer Network Academic Alliance с 2006 года.</p>
+    </div>
+    <div class="info-card">
+      <h3><span class="icon">🏛️</span> Кафедры</h3>
+      <ul>
+        <li>Компьютерные науки и экспериментальная математика</li>
+        <li>Математический анализ и теория функций</li>
+        <li>Фундаментальная информатика и ИИ</li>
+        <li>Информационные системы и компьютерное моделирование</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3><span class="icon">📚</span> Направления бакалавриата</h3>
+      <ul>
+        <li>Прикладная математика и информатика</li>
+        <li>Математика и компьютерные науки</li>
+        <li>Мат. обеспечение и администрирование ИС</li>
+        <li>Информатика и вычислительная техника</li>
+        <li>Программная инженерия</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3><span class="icon">🔬</span> Наука</h3>
+      <p>Преподаватели ведут фундаментальные и прикладные исследования, участвуют в международных конференциях, получают научные гранты и публикуются в журналах РАН и международных изданиях. Студенты защищают курсовые и дипломные работы, результаты которых становятся научными публикациями.</p>
+    </div>
+  </div>
+
+  <div class="activities">
+    <h2>Чем мы занимаемся</h2>
+    <div class="activity-tags">
+      <div class="activity-tag">Научные конференции</div>
+      <div class="activity-tag">Хакатоны</div>
+      <div class="activity-tag">Олимпиады ICPC</div>
+      <div class="activity-tag">CTF-соревнования</div>
+      <div class="activity-tag">Научные публикации</div>
+      <div class="activity-tag">Гранты Росмолодёжь</div>
+      <div class="activity-tag">Мастер-классы</div>
+      <div class="activity-tag">Проекты Open Source</div>
+      <div class="activity-tag">Стажировки в IT</div>
+      <div class="activity-tag">Научные семинары</div>
+    </div>
+  </div>
+
+  <div class="contact-bar">
+    <span style="color:var(--text-dim)">📍 Волгоград, Университетский пр. 100</span>
+    <a href="https://vk.com/snoimit" target="_blank">VK: vk.com/snoimit</a>
+    <a href="https://volsu.ru" target="_blank">volsu.ru</a>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ SORTING ═══════════════════ -->
+<div id="sorting" class="section">
+<div class="container">
+  <div class="sort-header">
+    <h2>Визуализация алгоритмов сортировки</h2>
+    <p>Выберите алгоритм и наблюдайте, как он упорядочивает данные. Каждый алгоритм использует свою стратегию — от простого перебора до «разделяй и властвуй».</p>
+  </div>
+
+  <div class="sort-controls">
+    <div class="algo-btns">
+      <button class="algo-btn active" data-algo="bubble">Bubble</button>
+      <button class="algo-btn" data-algo="selection">Selection</button>
+      <button class="algo-btn" data-algo="insertion">Insertion</button>
+      <button class="algo-btn" data-algo="merge">Merge</button>
+      <button class="algo-btn" data-algo="quick">Quick</button>
+    </div>
+    <div class="slider-group">
+      <label>Размер: <span id="sizeVal">40</span></label>
+      <input type="range" id="sizeSlider" min="10" max="100" value="40">
+    </div>
+    <div class="slider-group">
+      <label>Скорость: <span id="speedVal">5</span></label>
+      <input type="range" id="speedSlider" min="1" max="10" value="5">
+    </div>
+    <button class="action-btn btn-shuffle" id="shuffleBtn">Перемешать</button>
+    <button class="action-btn btn-sort" id="sortBtn">Сортировать</button>
+  </div>
+
+  <div class="sort-stats">
+    <div>Сравнений: <span class="num" id="compCount">0</span></div>
+    <div>Перестановок: <span class="num" id="swapCount">0</span></div>
+    <div>Обращений: <span class="num" id="accessCount">0</span></div>
+  </div>
+
+  <div class="bars-container" id="barsContainer"></div>
+
+  <div class="algo-desc" id="algoDesc"></div>
+</div>
+</div>
+
+<!-- ═══════════════════ HEXAPAWN ═══════════════════ -->
+<div id="hexapawn" class="section">
+<div class="container">
+  <div class="hex-intro">
+    <h2>Hexapawn — ИИ учится на ваших глазах</h2>
+    <p>Hexapawn — мини-шахматы на доске 3×3 с тремя пешками. Компьютер играет по методу <strong>MENACE</strong> (Machine Educable Noughts And Crosses Engine) — это один из первых алгоритмов машинного обучения (1961). ИИ начинает без знаний и обучается с каждой партией. Попробуйте сыграть 10–15 партий и посмотрите, как ИИ перестаёт проигрывать.</p>
+  </div>
+  <div class="hex-layout">
+    <div class="hex-board-wrap">
+      <div class="game-msg" id="gameMsg">Ваш ход (белые)</div>
+      <div class="hex-board" id="hexBoard"></div>
+    </div>
+    <div class="hex-sidebar">
+      <div class="hex-panel">
+        <h3>📊 Статистика</h3>
+        <div class="hex-stat-row"><span class="hex-stat-label">Партий сыграно</span><span class="hex-stat-val" id="gamesPlayed">0</span></div>
+        <div class="hex-stat-row"><span class="hex-stat-label">Побед игрока</span><span class="hex-stat-val" id="playerWins">0</span></div>
+        <div class="hex-stat-row"><span class="hex-stat-label">Побед ИИ</span><span class="hex-stat-val" id="aiWins">0</span></div>
+        <div class="hex-stat-row"><span class="hex-stat-label">Ничьих</span><span class="hex-stat-val" id="draws">0</span></div>
+        <div class="hex-stat-row"><span class="hex-stat-label">Винрейт ИИ</span><span class="hex-stat-val" id="aiWinrate">0%</span></div>
+      </div>
+      <div class="hex-panel">
+        <h3>🧠 Обучение ИИ</h3>
+        <div class="hex-stat-row"><span class="hex-stat-label">Изученных состояний</span><span class="hex-stat-val" id="brainStates">0</span></div>
+        <div class="brain-meter"><div class="brain-fill" id="brainFill" style="width:0%"></div></div>
+      </div>
+      <div class="hex-btns">
+        <button class="hex-btn" id="newGameBtn">Новая игра</button>
+        <button class="hex-btn danger" id="resetAiBtn">Сбросить ИИ</button>
+      </div>
+      <div class="hex-panel">
+        <h3>📖 Правила</h3>
+        <ul class="hex-rules">
+          <li>Белые (вы) внизу, чёрные (ИИ) вверху</li>
+          <li>Пешка ходит на одну клетку вперёд</li>
+          <li>Пешка бьёт по диагонали вперёд</li>
+          <li>Побеждает тот, кто дойдёт до противоположного края, съест все пешки противника, или если противник не может ходить</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════ TABS ═══════════════════
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ═══════════════════ SORTING ═══════════════════
+const sortState = {
+  arr: [],
+  size: 40,
+  speed: 5,
+  algo: 'bubble',
+  running: false,
+  comparisons: 0,
+  swaps: 0,
+  accesses: 0,
+};
+
+const algoDescriptions = {
+  bubble: {
+    name: 'Bubble Sort',
+    desc: 'Простейший алгоритм сортировки. Проходит по массиву и меняет местами соседние элементы, если они стоят в неправильном порядке. Повторяет проходы, пока массив не отсортирован. Название — от «всплывания» больших элементов наверх.',
+    complexity: 'O(n²)',
+  },
+  selection: {
+    name: 'Selection Sort',
+    desc: 'На каждом шаге находит минимальный элемент в неотсортированной части массива и ставит его на правильное место. Интуитивно понятен, но неэффективен на больших массивах.',
+    complexity: 'O(n²)',
+  },
+  insertion: {
+    name: 'Insertion Sort',
+    desc: 'Строит отсортированный массив по одному элементу за раз, вставляя каждый новый элемент на правильную позицию среди уже отсортированных. Эффективен на почти отсортированных данных.',
+    complexity: 'O(n²)',
+  },
+  merge: {
+    name: 'Merge Sort',
+    desc: 'Алгоритм «разделяй и властвуй». Делит массив пополам, рекурсивно сортирует каждую половину, затем сливает два отсортированных массива в один. Гарантированно быстр, но требует дополнительную память.',
+    complexity: 'O(n log n)',
+  },
+  quick: {
+    name: 'Quick Sort',
+    desc: 'Выбирает опорный элемент (pivot) и разделяет массив на элементы меньше и больше опорного. Рекурсивно сортирует обе части. Один из самых быстрых алгоритмов на практике.',
+    complexity: 'O(n log n) в среднем',
+  },
+};
+
+const barsContainer = document.getElementById('barsContainer');
+const compCountEl = document.getElementById('compCount');
+const swapCountEl = document.getElementById('swapCount');
+const accessCountEl = document.getElementById('accessCount');
+const algoDescEl = document.getElementById('algoDesc');
+
+function getDelay() {
+  const s = sortState.speed;
+  return Math.max(1, Math.round(200 / (s * s)));
+}
+
+function initArray() {
+  sortState.arr = [];
+  for (let i = 1; i <= sortState.size; i++) sortState.arr.push(i);
+  shuffleArray();
+  sortState.comparisons = 0;
+  sortState.swaps = 0;
+  sortState.accesses = 0;
+  updateStats();
+  renderBars();
+}
+
+function shuffleArray() {
+  const a = sortState.arr;
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+function renderBars(highlights = {}) {
+  const { comparing = [], swapping = [], sorted = [], pivot = -1 } = highlights;
+  const max = sortState.size;
+  barsContainer.innerHTML = '';
+  sortState.arr.forEach((val, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    if (comparing.includes(i)) bar.classList.add('comparing');
+    if (swapping.includes(i)) bar.classList.add('swapping');
+    if (sorted.includes(i)) bar.classList.add('sorted');
+    if (i === pivot) bar.classList.add('pivot');
+    const pct = (val / max) * 100;
+    bar.style.height = pct + '%';
+    const hue = (val / max) * 180 + 160;
+    bar.style.background = sorted.includes(i)
+      ? `hsl(150, 100%, ${40 + pct * 0.2}%)`
+      : `hsl(${hue}, 100%, ${45 + pct * 0.15}%)`;
+    barsContainer.appendChild(bar);
+  });
+}
+
+function updateStats() {
+  compCountEl.textContent = sortState.comparisons;
+  swapCountEl.textContent = sortState.swaps;
+  accessCountEl.textContent = sortState.accesses;
+}
+
+function updateAlgoDesc() {
+  const info = algoDescriptions[sortState.algo];
+  algoDescEl.innerHTML = `<strong>${info.name}</strong> — ${info.desc}<br><span class="complexity">${info.complexity}</span>`;
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function bubbleSort() {
+  const a = sortState.arr;
+  const n = a.length;
+  const sorted = [];
+  for (let i = 0; i < n - 1 && sortState.running; i++) {
+    for (let j = 0; j < n - i - 1 && sortState.running; j++) {
+      sortState.comparisons++;
+      sortState.accesses += 2;
+      renderBars({ comparing: [j, j + 1], sorted });
+      updateStats();
+      await sleep(getDelay());
+      if (a[j] > a[j + 1]) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]];
+        sortState.swaps++;
+        renderBars({ swapping: [j, j + 1], sorted });
+        updateStats();
+        await sleep(getDelay());
+      }
+    }
+    sorted.push(n - 1 - i);
+  }
+  sorted.push(0);
+  renderBars({ sorted: Array.from({ length: n }, (_, i) => i) });
+}
+
+async function selectionSort() {
+  const a = sortState.arr;
+  const n = a.length;
+  const sorted = [];
+  for (let i = 0; i < n - 1 && sortState.running; i++) {
+    let minIdx = i;
+    for (let j = i + 1; j < n && sortState.running; j++) {
+      sortState.comparisons++;
+      sortState.accesses += 2;
+      renderBars({ comparing: [minIdx, j], sorted });
+      updateStats();
+      await sleep(getDelay());
+      if (a[j] < a[minIdx]) minIdx = j;
+    }
+    if (minIdx !== i) {
+      [a[i], a[minIdx]] = [a[minIdx], a[i]];
+      sortState.swaps++;
+      renderBars({ swapping: [i, minIdx], sorted });
+      updateStats();
+      await sleep(getDelay());
+    }
+    sorted.push(i);
+  }
+  sorted.push(n - 1);
+  renderBars({ sorted: Array.from({ length: n }, (_, i) => i) });
+}
+
+async function insertionSort() {
+  const a = sortState.arr;
+  const n = a.length;
+  const sorted = [0];
+  for (let i = 1; i < n && sortState.running; i++) {
+    const key = a[i];
+    let j = i - 1;
+    sortState.accesses++;
+    renderBars({ comparing: [i], sorted });
+    updateStats();
+    await sleep(getDelay());
+    while (j >= 0 && a[j] > key && sortState.running) {
+      sortState.comparisons++;
+      sortState.accesses += 2;
+      a[j + 1] = a[j];
+      sortState.swaps++;
+      renderBars({ swapping: [j, j + 1], sorted });
+      updateStats();
+      await sleep(getDelay());
+      j--;
+    }
+    if (j >= 0) { sortState.comparisons++; sortState.accesses++; }
+    a[j + 1] = key;
+    sortState.accesses++;
+    sorted.push(i);
+    renderBars({ sorted });
+    await sleep(getDelay());
+  }
+  renderBars({ sorted: Array.from({ length: n }, (_, i) => i) });
+}
+
+async function mergeSort() {
+  const a = sortState.arr;
+  async function merge(l, m, r) {
+    const left = a.slice(l, m + 1);
+    const right = a.slice(m + 1, r + 1);
+    let i = 0, j = 0, k = l;
+    while (i < left.length && j < right.length && sortState.running) {
+      sortState.comparisons++;
+      sortState.accesses += 2;
+      renderBars({ comparing: [l + i, m + 1 + j] });
+      updateStats();
+      await sleep(getDelay());
+      if (left[i] <= right[j]) {
+        a[k] = left[i]; i++;
+      } else {
+        a[k] = right[j]; j++;
+        sortState.swaps++;
+      }
+      sortState.accesses++;
+      renderBars({ swapping: [k] });
+      updateStats();
+      await sleep(getDelay());
+      k++;
+    }
+    while (i < left.length && sortState.running) {
+      a[k] = left[i]; i++; k++;
+      sortState.accesses++;
+      renderBars({ swapping: [k - 1] });
+      await sleep(getDelay());
+    }
+    while (j < right.length && sortState.running) {
+      a[k] = right[j]; j++; k++;
+      sortState.accesses++;
+      renderBars({ swapping: [k - 1] });
+      await sleep(getDelay());
+    }
+  }
+  async function ms(l, r) {
+    if (l < r && sortState.running) {
+      const m = Math.floor((l + r) / 2);
+      await ms(l, m);
+      await ms(m + 1, r);
+      await merge(l, m, r);
+    }
+  }
+  await ms(0, a.length - 1);
+  renderBars({ sorted: Array.from({ length: a.length }, (_, i) => i) });
+}
+
+async function quickSort() {
+  const a = sortState.arr;
+  async function partition(low, high) {
+    const pivot = a[high];
+    let i = low - 1;
+    for (let j = low; j < high && sortState.running; j++) {
+      sortState.comparisons++;
+      sortState.accesses += 2;
+      renderBars({ comparing: [j], pivot: high });
+      updateStats();
+      await sleep(getDelay());
+      if (a[j] < pivot) {
+        i++;
+        [a[i], a[j]] = [a[j], a[i]];
+        sortState.swaps++;
+        sortState.accesses += 2;
+        renderBars({ swapping: [i, j], pivot: high });
+        updateStats();
+        await sleep(getDelay());
+      }
+    }
+    [a[i + 1], a[high]] = [a[high], a[i + 1]];
+    sortState.swaps++;
+    sortState.accesses += 2;
+    renderBars({ swapping: [i + 1, high] });
+    updateStats();
+    await sleep(getDelay());
+    return i + 1;
+  }
+  async function qs(low, high) {
+    if (low < high && sortState.running) {
+      const pi = await partition(low, high);
+      await qs(low, pi - 1);
+      await qs(pi + 1, high);
+    }
+  }
+  await qs(0, a.length - 1);
+  renderBars({ sorted: Array.from({ length: a.length }, (_, i) => i) });
+}
+
+const sortFns = { bubble: bubbleSort, selection: selectionSort, insertion: insertionSort, merge: mergeSort, quick: quickSort };
+
+document.querySelectorAll('.algo-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (sortState.running) return;
+    document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sortState.algo = btn.dataset.algo;
+    updateAlgoDesc();
+  });
+});
+
+document.getElementById('sizeSlider').addEventListener('input', e => {
+  if (sortState.running) return;
+  sortState.size = +e.target.value;
+  document.getElementById('sizeVal').textContent = sortState.size;
+  initArray();
+});
+
+document.getElementById('speedSlider').addEventListener('input', e => {
+  sortState.speed = +e.target.value;
+  document.getElementById('speedVal').textContent = sortState.speed;
+});
+
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  if (sortState.running) return;
+  shuffleArray();
+  sortState.comparisons = 0;
+  sortState.swaps = 0;
+  sortState.accesses = 0;
+  updateStats();
+  renderBars();
+});
+
+document.getElementById('sortBtn').addEventListener('click', async () => {
+  if (sortState.running) return;
+  sortState.running = true;
+  document.getElementById('sortBtn').disabled = true;
+  document.getElementById('shuffleBtn').disabled = true;
+  document.getElementById('sizeSlider').disabled = true;
+  sortState.comparisons = 0;
+  sortState.swaps = 0;
+  sortState.accesses = 0;
+  updateStats();
+  await sortFns[sortState.algo]();
+  sortState.running = false;
+  document.getElementById('sortBtn').disabled = false;
+  document.getElementById('shuffleBtn').disabled = false;
+  document.getElementById('sizeSlider').disabled = false;
+});
+
+initArray();
+updateAlgoDesc();
+
+// ═══════════════════ HEXAPAWN ═══════════════════
+const HEX = {
+  // Board: 3x3, 0=empty, 1=white(player), 2=black(AI)
+  // Rows: 0=top (black start), 2=bottom (white start)
+  board: [],
+  selected: null,
+  validMoves: [],
+  turn: 'white', // white=player, black=AI
+  gameOver: false,
+  stats: { games: 0, playerWins: 0, aiWins: 0, draws: 0 },
+  // MENACE brain: Map<boardStateKey, Map<moveKey, weight>>
+  brain: new Map(),
+  // Record of AI moves in current game for learning
+  aiMoveHistory: [],
+};
+
+function initHexBoard() {
+  HEX.board = [
+    [2, 2, 2],
+    [0, 0, 0],
+    [1, 1, 1],
+  ];
+  HEX.selected = null;
+  HEX.validMoves = [];
+  HEX.turn = 'white';
+  HEX.gameOver = false;
+  HEX.aiMoveHistory = [];
+  renderHexBoard();
+  setGameMsg('Ваш ход (белые)', 'info');
+}
+
+function boardKey(board) {
+  return board.flat().join('');
+}
+
+function setGameMsg(msg, cls = '') {
+  const el = document.getElementById('gameMsg');
+  el.textContent = msg;
+  el.className = 'game-msg ' + cls;
+}
+
+function getValidMoves(board, color) {
+  const moves = [];
+  const dir = color === 1 ? -1 : 1; // white goes up(-1), black goes down(+1)
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (board[r][c] !== color) continue;
+      const nr = r + dir;
+      if (nr < 0 || nr > 2) continue;
+      // Forward move
+      if (board[nr][c] === 0) moves.push({ fr: r, fc: c, tr: nr, tc: c });
+      // Diagonal captures
+      if (c > 0 && board[nr][c - 1] !== 0 && board[nr][c - 1] !== color)
+        moves.push({ fr: r, fc: c, tr: nr, tc: c - 1 });
+      if (c < 2 && board[nr][c + 1] !== 0 && board[nr][c + 1] !== color)
+        moves.push({ fr: r, fc: c, tr: nr, tc: c + 1 });
+    }
+  }
+  return moves;
+}
+
+function moveKey(m) {
+  return `${m.fr}${m.fc}${m.tr}${m.tc}`;
+}
+
+function checkWin(board) {
+  // White reaches row 0
+  if (board[0].includes(1)) return 'white';
+  // Black reaches row 2
+  if (board[2].includes(2)) return 'black';
+  // No white pieces
+  if (!board.flat().includes(1)) return 'black';
+  // No black pieces
+  if (!board.flat().includes(2)) return 'white';
+  // White can't move
+  if (getValidMoves(board, 1).length === 0) return 'black';
+  // Black can't move
+  if (getValidMoves(board, 2).length === 0) return 'white';
+  return null;
+}
+
+function aiChooseMove(board) {
+  const key = boardKey(board);
+  const moves = getValidMoves(board, 2);
+  if (moves.length === 0) return null;
+
+  // Get or initialize weights for this state
+  if (!HEX.brain.has(key)) {
+    const weights = new Map();
+    moves.forEach(m => weights.set(moveKey(m), 3));
+    HEX.brain.set(key, weights);
+  }
+
+  const weights = HEX.brain.get(key);
+
+  // Filter to moves that still have weight > 0
+  const available = moves.filter(m => {
+    const k = moveKey(m);
+    return weights.has(k) && weights.get(k) > 0;
+  });
+
+  if (available.length === 0) {
+    // All weights depleted, pick random
+    const m = moves[Math.floor(Math.random() * moves.length)];
+    return m;
+  }
+
+  // Weighted random selection
+  let total = 0;
+  available.forEach(m => { total += weights.get(moveKey(m)); });
+  let rand = Math.random() * total;
+  for (const m of available) {
+    rand -= weights.get(moveKey(m));
+    if (rand <= 0) return m;
+  }
+  return available[available.length - 1];
+}
+
+function applyMove(board, move) {
+  board[move.tr][move.tc] = board[move.fr][move.fc];
+  board[move.fr][move.fc] = 0;
+}
+
+function learnFromGame(winner) {
+  for (const { stateKey, moveKey: mk } of HEX.aiMoveHistory) {
+    if (!HEX.brain.has(stateKey)) continue;
+    const weights = HEX.brain.get(stateKey);
+    if (!weights.has(mk)) continue;
+    if (winner === 'white') {
+      // AI lost — reduce weight
+      weights.set(mk, Math.max(0, weights.get(mk) - 1));
+    } else if (winner === 'black') {
+      // AI won — increase weight
+      weights.set(mk, weights.get(mk) + 1);
+    }
+  }
+}
+
+function updateHexStats() {
+  document.getElementById('gamesPlayed').textContent = HEX.stats.games;
+  document.getElementById('playerWins').textContent = HEX.stats.playerWins;
+  document.getElementById('aiWins').textContent = HEX.stats.aiWins;
+  document.getElementById('draws').textContent = HEX.stats.draws;
+  const rate = HEX.stats.games > 0 ? Math.round((HEX.stats.aiWins / HEX.stats.games) * 100) : 0;
+  document.getElementById('aiWinrate').textContent = rate + '%';
+  document.getElementById('brainStates').textContent = HEX.brain.size;
+  const fill = Math.min(100, (HEX.brain.size / 30) * 100);
+  document.getElementById('brainFill').style.width = fill + '%';
+}
+
+function renderHexBoard() {
+  const boardEl = document.getElementById('hexBoard');
+  boardEl.innerHTML = '';
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      const cell = document.createElement('div');
+      const isDark = (r + c) % 2 === 1;
+      cell.className = 'hex-cell ' + (isDark ? 'dark' : 'light');
+
+      if (HEX.selected && HEX.selected.r === r && HEX.selected.c === c) {
+        cell.classList.add('selected');
+      }
+
+      const isValid = HEX.validMoves.some(m => m.tr === r && m.tc === c);
+      if (isValid) cell.classList.add('valid-move');
+
+      if (HEX.board[r][c] === 1) {
+        const piece = document.createElement('div');
+        piece.className = 'piece piece-white';
+        piece.textContent = '♟';
+        cell.appendChild(piece);
+      } else if (HEX.board[r][c] === 2) {
+        const piece = document.createElement('div');
+        piece.className = 'piece piece-black';
+        piece.textContent = '♟';
+        cell.appendChild(piece);
+      }
+
+      cell.addEventListener('click', () => onCellClick(r, c));
+      boardEl.appendChild(cell);
+    }
+  }
+  updateHexStats();
+}
+
+function onCellClick(r, c) {
+  if (HEX.gameOver || HEX.turn !== 'white') return;
+
+  // Check if clicking a valid move target
+  const validMove = HEX.validMoves.find(m => m.tr === r && m.tc === c);
+  if (validMove) {
+    applyMove(HEX.board, validMove);
+    HEX.selected = null;
+    HEX.validMoves = [];
+    renderHexBoard();
+
+    const winner = checkWin(HEX.board);
+    if (winner) {
+      endGame(winner);
+      return;
+    }
+
+    HEX.turn = 'black';
+    setGameMsg('ИИ думает...', 'info');
+    setTimeout(aiTurn, 500);
+    return;
+  }
+
+  // Select a white piece
+  if (HEX.board[r][c] === 1) {
+    HEX.selected = { r, c };
+    HEX.validMoves = getValidMoves(HEX.board, 1).filter(m => m.fr === r && m.fc === c);
+    renderHexBoard();
+    return;
+  }
+
+  // Deselect
+  HEX.selected = null;
+  HEX.validMoves = [];
+  renderHexBoard();
+}
+
+function aiTurn() {
+  if (HEX.gameOver) return;
+  const stateKey = boardKey(HEX.board);
+  const move = aiChooseMove(HEX.board);
+
+  if (!move) {
+    endGame('white');
+    return;
+  }
+
+  HEX.aiMoveHistory.push({ stateKey, moveKey: moveKey(move) });
+  applyMove(HEX.board, move);
+  renderHexBoard();
+
+  const winner = checkWin(HEX.board);
+  if (winner) {
+    endGame(winner);
+    return;
+  }
+
+  HEX.turn = 'white';
+
+  // Check if player can move
+  if (getValidMoves(HEX.board, 1).length === 0) {
+    endGame('black');
+    return;
+  }
+
+  setGameMsg('Ваш ход (белые)', 'info');
+}
+
+function endGame(winner) {
+  HEX.gameOver = true;
+  HEX.stats.games++;
+
+  if (winner === 'white') {
+    HEX.stats.playerWins++;
+    setGameMsg('Вы победили! ИИ учится на ошибках...', 'win');
+  } else {
+    HEX.stats.aiWins++;
+    setGameMsg('ИИ победил! Он становится сильнее.', 'lose');
+  }
+
+  learnFromGame(winner);
+  updateHexStats();
+
+  setTimeout(() => {
+    initHexBoard();
+  }, 2000);
+}
+
+document.getElementById('newGameBtn').addEventListener('click', () => {
+  initHexBoard();
+});
+
+document.getElementById('resetAiBtn').addEventListener('click', () => {
+  HEX.brain.clear();
+  HEX.stats = { games: 0, playerWins: 0, aiWins: 0, draws: 0 };
+  initHexBoard();
+});
+
+initHexBoard();
+</script>
+</body>
+</html>
